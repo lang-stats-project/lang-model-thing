@@ -1,0 +1,105 @@
+# =============================================================== #
+# TOPIC MODEL PIPELINE README
+# =============================================================== #
+
+To run... 
+
+In the root of this folder, there is a shell script called "run.sh"
+
+This script takes 3 parameters: 
+
+		1. [output dir for .bof files] 
+		2. [an .idx file w/ list of video ids to generate .bof files from] 
+		3. [OPTIONAL: labelset .idx file to train new topic model]
+
+
+NOTE: DO NOT set parameter 3 if you already have a topic model! 
+
+If you run with no parameters, it will show the list of options above. 
+
+EXAMPLE:
+
+./run.sh bof test-dummy.idx train-dummy.idx 
+
+or...(^^ this command should be run first to make sure things are working!)
+
+./run.sh bof dummyids.idx /data/MM2/MED/labelsets/vids_RESEARCH.idx
+
+(^^ You can copy/paste/run this command 'as is' to try it out!)  
+
+bof - the ouptut directory (will be created in the root if not absolute path) 
+dummyids.idx - an .idx file of video ids for testing the topic model (absolute path necessary unless in same directory) 
+/data/MM2/MED/labelsets/vids_RESEARCH.idx - an .idx file to train a new model (absolute path necessary unless in same directory)
+
+
+tl;dr
+
+# +++++++++++++++++++++++++++++++++++++++++ #
+# UPDATE: 17/7/2014
+# EVERYTHING BELOW HERE IS OUT OF DATE! 
+# DON'T RELY ON IT FOR NOW!
+# +++++++++++++++++++++++++++++++++++++++++ #
+
+# =============================================================== #
+# BUILDING A NEW TOPIC MODEL
+# =============================================================== #
+
+If the 3rd parameter to run.sh is set, this means you are trying to build a new model. Simply supply an .idx file containing all the ids of the videos you want to train on. The example above will build a model from the MED-RESEARCH set. 
+
+If you want to build a model over an extended dataset or a series of .idx files, then simply concatenate the files together into one long .idx file and pass this new file as the 2nd parameter to run.sh
+
+Once the topic model has been created, the name of the working LDA model (the one you are presumably using) is stored in a file called 'model'. 
+
+Models are named with the form: 
+
+[lda-topic-model]-[training set]-[# of topics]
+
+e.g. 'lda-topic-model-vids_RESEARCH-250'
+
+In the 'model' file, you need only supply the name of the training set, in the above case, 'vids_RESEARCH'. This is the basename of the .idx file that was used to train the topic model. 
+
+NOTE: Not all videos will generate .bof files. Some of them will be blank, due to lack of ASR output. 
+
+# =============================================================== #
+# GENERATING .BOF FILES FROM .CONF FILES 
+# =============================================================== #
+
+The first two parameters to run.sh MUST be set. The first can by any directory. If the directory does not already exist, the script will create it, provided it has the correct permissions. 
+
+The second parameter is a file containing a list of .conf files. These must be ABSOLUTE file paths. When supplied, the script will process the .conf files so they can be used with the topic model, generate a topic distribution over the whole dataset, then calcuate a bag of words distribution for each video in the .conf files based on the topic distribution. It outputs a .bof file in SVM format. 
+
+NOTE: There are MULTIPLE videos in each .conf file. The number of .bof files will NOT correspond to the number of .conf files! It will corespond to the number of videos in the .conf files. 
+
+# =============================================================== #
+# SUBMITTING FOR EVALUATION
+# =============================================================== #
+
+This script has an parameter which can be set to tell the run.sh script to create a .config file and submit it to the Evaluation Pipeline. open up the run.sh script and look at the following:
+
+SUBMIT_FOR_EVAL=false 
+DATASET="[FILL-IN-DATASET-HERE!]" 
+
+Set to 'true' to submit the job. Of course, make sure you have set the DATASET variable to one of the available dataset names, e.g.
+
+DATASET="MED13-MEDTEST-EK100" 
+
+Of course, if you haven't generated .bof files for the videos in the dataset, your results will not be good. Make sure you know which .conf files correspond to the dataset you want to train / test on. 
+
+# =============================================================== #
+# TROUBLESHOOTING AND TWEAKING
+# =============================================================== #
+
+The run.sh script is heavily commented. There are multiple parameters which can be tweaked if you need to change something. It should be mostly explanatory, but at the top of the run.sh file you will see a series of boolean switches. These turn off and on different parts of the pipeline. For instance, if you run this for the first time, you will notice it spends a long time digging through directories to find .conf files. It builds a dictionary of the locations of various videos respective .conf files. This only needs to be run once. If you want to turn OFF the search for .conf files, that parameter is located at the very top of the run.sh script:
+
+SEARCH_CONF_FILES=true 
+
+Simply change this accordingly to 'false' if you don't want the script to search for .conf files. Of course, if you supply an .idx file, there will be no way for the script to look up the .conf files of the video ids in the .idx file unless you allow it to run once and build a mapping, which it will save in 'conf.list'. So don't switch this off until you have a conf.list file.
+
+NOTE: conf.list should NOT be deleted once it is created. (If it is not already created.)
+
+Also, if the pipeline fails or runs out of memory or explodes or whatever, the switches can be used effectively to diable the parts of the pipeline that have already run. Log the output of the script as it runs to see where it stops, if it does. 
+
+The switches have been set to a conservative initial setting, so the pipeline does a lot of cleaning up after itself. You can turn this off to eliminate redundant copying and computation. 
+
+Read the comments in run.sh. If you still have trouble, email me at nwolfe@cs.cmu.edu 
+
