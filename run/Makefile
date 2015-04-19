@@ -1,5 +1,5 @@
-BIN=../bin
-export PATH:=../bin:.:${PATH} # Binaries in the bin directory
+export PATH:=${PATH}:../bin:. # Binaries in the bin directory
+export SHELL := /bin/bash
 .PRECIOUS:
 
 random-features.%:
