@@ -13,9 +13,9 @@ articles = bigsent.split('~~~~~\n')[1:]
 for i in range(len(truth)):
 	val = truth[i]
 	if val == '0':
-		open('fake/' + str(i) + '.txt', 'w').write(articles[i])
+		open('../../data/dev/fake/' + str(i) + '.txt', 'w').write(articles[i])
 	if val == '1':	
-		open('real/' + str(i) + '.txt', 'w').write(articles[i])
+		open('../../data/dev/real/' + str(i) + '.txt', 'w').write(articles[i])
 
 
 
