@@ -5,3 +5,5 @@ bin/*.py
 bin/train
 bin/predict
 src/liblinear-1.96
+*.pyc
+.DS_Store
