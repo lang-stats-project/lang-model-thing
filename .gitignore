@@ -1,6 +1,9 @@
 /LM-train-100MW.txt
 /LM-train-100MW.txt.gz
 .*project
+bin/*.py
+bin/train
+bin/predict
+src/liblinear-1.96
 *.pyc
 .DS_Store
-
