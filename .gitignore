@@ -2,4 +2,5 @@
 /LM-train-100MW.txt.gz
 .*project
 *.pyc
+.DS_Store
 
