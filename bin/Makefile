@@ -8,8 +8,9 @@ liblinear: check
 	ln -s ../src/liblinear-1.96/predict .
 
 python: check
-	test -e `ls *.py` || ls *.py | xargs -I '{}' unlink '{}'
+	ls *.py | xargs -I '{}' unlink '{}'
 	ln -s ../src/scripts/*.py .
+	chmod +x *.py
 check:
 	true
 
