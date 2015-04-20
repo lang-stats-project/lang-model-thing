@@ -69,3 +69,21 @@ if __name__ == "__main__":
     print "and the winner is... %f with a training accuracy of %f" % result
 
     # TODO: test this on dev set
+    threshold = result[0]
+    # dev
+    real = count_dir(args.dev_dir, args.real_dir)
+    fake = count_dir(args.dev_dir, args.fake_dir)
+
+    real_ratios = []
+    for art_id in real:
+        real_ratios.append(extract_feature(real[art_id], False))
+
+    fake_ratios = []
+    for art_id in fake:
+        fake_ratios.append(extract_feature(fake[art_id], False))
+
+    corpus_size = len(real_ratios) + len(fake_ratios)
+    good = len([ratio for ratio in real_ratios if ratio >= threshold])
+    good += len([ratio for ratio in fake_ratios if ratio < threshold])
+    accuracy = good / float(corpus_size)
+    print "dev", threshold, accuracy
