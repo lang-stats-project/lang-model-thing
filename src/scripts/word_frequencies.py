@@ -5,12 +5,13 @@ from stop_words import *
 from collections import Counter
 from numpy import arange
 
-def count_dir(dir_name):
+# corpus is train/dev; sub_dir is real/fake
+def count_dir(corpus_dir, sub_dir_name):
+    full_dir = os.path.join(corpus_dir, sub_dir_name)
     articles_counts = {}
-    for article in os.listdir(dir_name):
-        article_filename = os.path.join(dir_name, article)
-        if os.path.isdir(article_filename):
-            continue
+    for article in os.listdir(full_dir):
+        article_filename = os.path.join(full_dir, article)
+        if os.path.isdir(article_filename): continue
         article_id = article.split('.')[0]
         article_counts = Counter()
         with open(article_filename, 'r') as article_file:
@@ -33,15 +34,20 @@ def extract_feature(article_counts, debug):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=('desc'))
-    parser.add_argument("-r", "--real_dir", dest="real_dir", default="data/train/real/", help="real dir")
-    parser.add_argument("-f", "--fake_dir", dest="fake_dir", default="data/train/fake/", help="fake dir")
+    parser.add_argument("-td", "--train_dir", dest="train_dir", default="data/train/", help="train dir")
+    parser.add_argument("-dd", "--dev_dir", dest="dev_dir", default="data/dev/", help="dev dir")
+    parser.add_argument("-r", "--real_dir", dest="real_dir", default="real/", help="real dir")
+    parser.add_argument("-f", "--fake_dir", dest="fake_dir", default="fake/", help="fake dir")
     args = parser.parse_args()
 
+    if not args.train_dir.endswith("/"): args.train_dir += "/"
+    if not args.dev_dir.endswith("/"): args.dev_dir += "/"
     if not args.real_dir.endswith("/"): args.real_dir += "/"
     if not args.fake_dir.endswith("/"): args.fake_dir += "/"
 
-    real = count_dir(args.real_dir)
-    fake = count_dir(args.fake_dir)
+    # train
+    real = count_dir(args.train_dir, args.real_dir)
+    fake = count_dir(args.train_dir, args.fake_dir)
 
     real_ratios = []
     for art_id in real:
