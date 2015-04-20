@@ -17,6 +17,7 @@ def count_dir(corpus_dir, sub_dir_name):
         with open(article_filename, 'r') as article_file:
             for line in article_file:
                 for word in line.split():
+                    word = word.lower()
                     if not is_stop(word):
                         article_counts[word] += 1
         articles_counts[article_id] = article_counts
