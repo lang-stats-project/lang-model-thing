@@ -20,11 +20,9 @@ any
 are
 as
 at
-be
 because
 been
 before
-being
 below
 between
 both
@@ -32,9 +30,6 @@ but
 by
 can
 did
-do
-does
-doing
 don
 down
 during
@@ -45,8 +40,6 @@ from
 further
 had
 has
-have
-having
 he
 her
 here
@@ -135,10 +128,45 @@ yourself
 yourselves
 </s>
 <s>
+one
+two
+three
+four
+five
+six
+seven
+eight
+nine
+ten
+eleven
+twelve
+twenty
+thirty
+forty
+fifty
+sixty
+seventy
+eighty
+ninety
+hundred
+really
+yes
+get
+well
+new
+old
+must
+every
+all
+none
 """
 stop_words = stop_words.split()
 
-bad_res = [] # TODO: insert bad words REs here. r"bad_words_re"
+# TODO: insert bad words REs here. r"bad_words_re"
+bad_res = [
+    r"\w*'\w*",
+    r"(think|go|do|know|be|have|want)(ing|ed|s)?"
+]
 
 # this lowers the word
 def is_stop(word):
