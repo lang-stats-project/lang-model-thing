@@ -4,6 +4,7 @@ import sys, os, time, argparse, operator
 from stop_words import *
 from collections import Counter
 from numpy import arange
+from random import *
 
 # corpus is train/dev; sub_dir is real/fake
 def count_dir(corpus_dir, sub_dir_name):
@@ -28,8 +29,9 @@ def extract_feature(article_counts, debug):
     art_size = sum(article_counts.values())
     art_most_freq = article_counts.most_common(1)[0][1]
     ratio = art_most_freq / float(art_size)
-    if debug:
+    if debug and random() > 0.9:
         print "size: %d, most freq: %d, ratio: %f" % (art_size, art_most_freq, ratio)
+        print article_counts
     return ratio
 
 
