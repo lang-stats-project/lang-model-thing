@@ -3,7 +3,7 @@
 # SWITCHES
 # =============================================================== #
 # --------------------------------------------------------------- #
-# CAREFUL! set if you want to destroy the previous set of files / config in the LOCAL_CONF_DIRECTORY
+# CAREFUL! set if you want to destroy the previous set of files / config in the LOCAL_DATA_DIRECTORY
 # works better if you get the conf files fresh each time...
 DESTROY_OLD_CONF_FILES=false
 # --------------------------------------------------------------- #
@@ -44,14 +44,7 @@ TOPIC_MODEL_MEMORY="10240m"
 # location of all .conf files...
 # --------------------------------------------------------------- #
 #
-CONF_FILES_DIRECTORY="conf"
-#CONF_FILES_DIRECTORY="/home/nwolfe/kaldi/confs-allsegs"
-#CONF_FILES_DIRECTORY="/home/nwolfe/kaldi/confs-speechonly"
-#CONF_FILES_DIRECTORY="/data/ASR1/med-12/ASR-Cluny/test-hvc-MED14-MEDTEST-EK100"
-CONF_ID_FILE_MAPPING="conf.list"
-#CONF_ID_FILE_MAPPING="conf-kaldi-speechonly.list"
-#CONF_ID_FILE_MAPPING="conf-kaldi-allsegs.list"
-LOCAL_CONF_DIRECTORY="OUT"
+LOCAL_DATA_DIRECTORY="data"
 #
 #
 #
@@ -175,7 +168,7 @@ BOF_LIST_FILE=$TMP_MODEL"-"$TEST_PREFIX"-"$NUM_TOPICS"-bof-list.list"
 #
 # ...just in case...
 chmod +x *.py
-mkdir $LOCAL_CONF_DIRECTORY
+mkdir $LOCAL_DATA_DIRECTORY
 mkdir $BOF_DIRECTORY
 #
 # --------------------------------------------------------------- #
@@ -184,7 +177,7 @@ if [ "$DESTROY_OLD_CONF_FILES" = true ]; then
 
 	echo "Removing old .conf files..."
 	cd $HOME_DIRECTORY
-	cd $LOCAL_CONF_DIRECTORY
+	cd $LOCAL_DATA_DIRECTORY
 	rm -rf *
 	cd $HOME_DIRECTORY
 	echo "Done!"
@@ -237,7 +230,7 @@ cd $HOME_DIRECTORY
 if [ "$NEW_ASR_FROM_CONF_FILES" = true ] ; then
 
 	echo "Generating ASR output..."
-	./get_asr_output_parallelized.py $LOCAL_CONF_DIRECTORY $LABELSET $TEST_IDX_FILE $CONF_ID_FILE_MAPPING $CSVTRAIN $CSVTEST $CSVCOMPOSITE
+	./get_asr_output_parallelized.py $LOCAL_DATA_DIRECTORY $LABELSET $TEST_IDX_FILE $CONF_ID_FILE_MAPPING $CSVTRAIN $CSVTEST $CSVCOMPOSITE
 
 fi
 # ================================================================================== #

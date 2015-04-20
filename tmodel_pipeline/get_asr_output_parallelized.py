@@ -9,10 +9,9 @@ import multiprocessing
 local_conf_dir = sys.argv[1]
 labelset = sys.argv[2]
 test_idx_file = sys.argv[3]
-conf_id_file_mapping = sys.argv[4]
-output_training_file = sys.argv[5]
-output_testing_file = sys.argv[6]
-composite_train_test_file = sys.argv[7]
+output_training_file = sys.argv[4]
+output_testing_file = sys.argv[5]
+composite_train_test_file = sys.argv[6]
 
 # WARNING! TIGHT COUPLING! #
 script_name = "get_asr_output.py"
@@ -62,7 +61,7 @@ for root, dirs, files in os.walk(local_conf_dir):
     while folder_count > 0:
         subset = os.sep.join([local_conf_dir,str(folder_count)])
         folder_count += -1
-        p = ASRProcessor(subset,labelset, test_idx_file, conf_id_file_mapping,
+        p = ASRProcessor(subset,labelset, test_idx_file,
                          output_training_file, output_testing_file, composite_train_test_file)
         q.append(p)
     

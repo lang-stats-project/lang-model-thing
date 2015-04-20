@@ -10,21 +10,19 @@ class ASRProcessor(threading.Thread):
 	video_prefix = "HVC"
 	conf_ext = ".conf"
 	num_digits = 6
-	conf_db = {}
 	training = {}
 	lock = Lock()
 	# list of janus outputs that do not correspond to words
 	non_words = ['+noise+','+breath+','+filler+','mhm']
 	
 	# ============================================ #	
-	def __init__(self,lcd,ls,tif,cifm,otrain,otest,comp):
+	def __init__(self,lcd,ls,tif,otrain,otest,comp):
 		super(ASRProcessor,self).__init__()
 		
 		# INSTANCE VARIABLES...
 		self.local_conf_dir = lcd
 		self.labelset = ls
 		self.test_idx_file = tif # REQUIRED PARAMETER...
-		self.conf_id_file_mapping = cifm
 		self.stemmer = PorterStemmer()
 		
 		# CLASS VARIABLES
@@ -37,10 +35,6 @@ class ASRProcessor(threading.Thread):
 		self.asr_data = []
 		self.evl = {}
 		self.used = {}
-		
-		# confidence file locations 
-		for l in open(self.conf_id_file_mapping).readlines(): 
-			ASRProcessor.conf_db[int(l.split(",")[0])] = l.split(",")[1].strip()
 		
 		# training set
 		for x in open(self.labelset).readlines(): 
@@ -70,7 +64,6 @@ class ASRProcessor(threading.Thread):
 			try:
 				idx = int(idx.strip())
 				self.evl[idx] = idx # evaluation list...
-				f = ASRProcessor.conf_db[idx].split(os.sep)[-1]
 				fullpath = os.sep.join([self.local_conf_dir,f])
 				if os.path.isfile(fullpath):
 					try:
