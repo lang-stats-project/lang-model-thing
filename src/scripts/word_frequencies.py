@@ -87,6 +87,14 @@ def test_threshold_on_dev(threshold, directories):
     accuracy = good / float(corpus_size)
     print "dev", threshold, accuracy
 
+def generate_features_for_all(directories):
+    # store the features in the hardcoded "top_word_rel_freq"
+    features_dir = get_dir('run/FEATURES/top_word_rel_freq', True)
+
+    for corpus_name in ('train', 'dev'):
+        for class_name in ('real', 'fake'):
+            generate_features(corpus_name, class_name, directories, features_dir)
+
 
 def generate_features(corpus_name, class_name, directories, features_dir):
     directories = vars(directories)
