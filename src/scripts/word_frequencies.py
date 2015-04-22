@@ -59,22 +59,7 @@ def get_optimal_threshold_from_train(directories):
     print "and the winner is... %f with a training accuracy of %f" % result
     return result[0]
 
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=('desc'))
-    parser.add_argument("-td", "--train_dir", dest="train_dir", default="data/train/", help="train dir")
-    parser.add_argument("-dd", "--dev_dir", dest="dev_dir", default="data/dev/", help="dev dir")
-    parser.add_argument("-r", "--real_dir", dest="real_dir", default="real/", help="real dir")
-    parser.add_argument("-f", "--fake_dir", dest="fake_dir", default="fake/", help="fake dir")
-    args = parser.parse_args()
-
-    if not args.train_dir.endswith("/"): args.train_dir += "/"
-    if not args.dev_dir.endswith("/"): args.dev_dir += "/"
-    if not args.real_dir.endswith("/"): args.real_dir += "/"
-    if not args.fake_dir.endswith("/"): args.fake_dir += "/"
-
-    threshold = get_optimal_threshold_from_train(args)
-
+def test_threshold_on_dev(threshold, directories):
     # dev
     real = count_dir(args.dev_dir, args.real_dir)
     fake = count_dir(args.dev_dir, args.fake_dir)
@@ -92,3 +77,21 @@ if __name__ == "__main__":
     good += len([ratio for ratio in fake_ratios if ratio < threshold])
     accuracy = good / float(corpus_size)
     print "dev", threshold, accuracy
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=('desc'))
+    parser.add_argument("-td", "--train_dir", dest="train_dir", default="data/train/", help="train dir")
+    parser.add_argument("-dd", "--dev_dir", dest="dev_dir", default="data/dev/", help="dev dir")
+    parser.add_argument("-r", "--real_dir", dest="real_dir", default="real/", help="real dir")
+    parser.add_argument("-f", "--fake_dir", dest="fake_dir", default="fake/", help="fake dir")
+    args = parser.parse_args()
+
+    if not args.train_dir.endswith("/"): args.train_dir += "/"
+    if not args.dev_dir.endswith("/"): args.dev_dir += "/"
+    if not args.real_dir.endswith("/"): args.real_dir += "/"
+    if not args.fake_dir.endswith("/"): args.fake_dir += "/"
+
+    threshold = get_optimal_threshold_from_train(args)
+
+    test_threshold_on_dev(threshold, args)
