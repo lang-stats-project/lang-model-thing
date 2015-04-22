@@ -88,6 +88,19 @@ def test_threshold_on_dev(threshold, directories):
     print "dev", threshold, accuracy
 
 
+def generate_features(corpus_name, class_name, directories, features_dir):
+    directories = vars(directories)
+    corpus_dir = directories[corpus_name + '_dir']
+    class_dir = directories[class_name + '_dir']
+    klass = count_dir(corpus_dir, class_dir)
+    for article in klass:
+        filename = "%s.%s.%s.f" % (corpus_name, class_name, article)
+        filename = os.path.join(features_dir, filename)
+        with open(filename, 'w') as feature_file:
+            feature_value = '%.8f' % extract_feature(klass[article], False)
+            feature_file.write(feature_value)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=('desc'))
     parser.add_argument("-td", "--train_dir", dest="train_dir", default="data/train/", help="train dir")
