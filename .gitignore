@@ -7,3 +7,7 @@ bin/predict
 src/liblinear-1.96
 *.pyc
 .DS_Store
+run/eval.*
+run/target.*
+run/RUN*
+run/FEATURES/random*

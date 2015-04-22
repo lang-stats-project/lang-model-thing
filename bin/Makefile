@@ -7,6 +7,14 @@ liblinear: check
 	ln -s ../src/liblinear-1.96/train .
 	ln -s ../src/liblinear-1.96/predict .
 
+libsvm : check
+	test -e ../src/libsvm-3.20 || (wget -O libsvm.tar.gz http://www.csie.ntu.edu.tw/~cjlin/cgi-bin/libsvm.cgi?+http://www.csie.ntu.edu.tw/~cjlin/libsvm+tar.gz; tar xvf libsvm.tar.gz -C ../src)
+	cd ../src/libsvm-3.20 ; make
+	rm libsvm.tar.gz
+	ln -s ../src/libsvm-3.20/svm-train .
+	ln -s ../src/libsvm-3.20/svm-predict .
+
+
 python: check
 	ls *.py | xargs -I '{}' unlink '{}'
 	ln -s ../src/scripts/*.py .
