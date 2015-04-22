@@ -31,5 +31,5 @@ for line in open(sys.argv[1]):
 out_v = [0]*V
 for i in xrange(V):
 	w = i2w[i]
-	out_v[i] = counts[w]
+	out_v[i] = counts[w]*1.00 / tok
 print >> out_file, "\t".join([str(val) for val in out_v])

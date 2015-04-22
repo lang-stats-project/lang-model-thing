@@ -10,4 +10,4 @@ src/liblinear-1.96
 run/eval.*
 run/target.*
 run/RUN*
-run/FEATURES/random*
+run/FEATURES/*
