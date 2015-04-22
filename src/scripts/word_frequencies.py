@@ -6,6 +6,15 @@ from collections import Counter
 from numpy import arange
 from random import *
 
+def get_dir(dir_name, create_if_missing=False):
+    if not os.path.exists(dir_name):
+        if create_if_missing:
+            os.makedirs(dir_name)
+        else:
+            print("unexisting dir '{}'".format(dir_name))
+            exit()
+    return dir_name
+
 # corpus is train/dev; sub_dir is real/fake
 def count_dir(corpus_dir, sub_dir_name):
     full_dir = os.path.join(corpus_dir, sub_dir_name)
