@@ -122,6 +122,6 @@ if __name__ == "__main__":
     if not args.real_dir.endswith("/"): args.real_dir += "/"
     if not args.fake_dir.endswith("/"): args.fake_dir += "/"
 
-    threshold = get_optimal_threshold_from_train(args)
+    #threshold = get_optimal_threshold_from_train(args)
+    #test_threshold_on_dev(threshold, args)
 
-    test_threshold_on_dev(threshold, args)
