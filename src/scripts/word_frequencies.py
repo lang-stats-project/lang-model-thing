@@ -125,3 +125,4 @@ if __name__ == "__main__":
     #threshold = get_optimal_threshold_from_train(args)
     #test_threshold_on_dev(threshold, args)
 
+    generate_features_for_all(args)
