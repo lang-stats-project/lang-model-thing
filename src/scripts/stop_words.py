@@ -30,7 +30,6 @@ but
 by
 can
 did
-don
 down
 during
 each
@@ -80,14 +79,12 @@ ourselves
 out
 over
 own
-s
 same
 she
 should
 so
 some
 such
-t
 than
 that
 the
@@ -162,7 +159,6 @@ none
 """
 stop_words = stop_words.split()
 
-# TODO: insert bad words REs here. r"bad_words_re"
 bad_res = [
     r"\w*'\w*",
     r"(think|go|do|know|be|have|want)(ing|ed|s)?"
