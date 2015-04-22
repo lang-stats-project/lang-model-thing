@@ -34,23 +34,10 @@ def extract_feature(article_counts, debug):
         print article_counts
     return ratio
 
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=('desc'))
-    parser.add_argument("-td", "--train_dir", dest="train_dir", default="data/train/", help="train dir")
-    parser.add_argument("-dd", "--dev_dir", dest="dev_dir", default="data/dev/", help="dev dir")
-    parser.add_argument("-r", "--real_dir", dest="real_dir", default="real/", help="real dir")
-    parser.add_argument("-f", "--fake_dir", dest="fake_dir", default="fake/", help="fake dir")
-    args = parser.parse_args()
-
-    if not args.train_dir.endswith("/"): args.train_dir += "/"
-    if not args.dev_dir.endswith("/"): args.dev_dir += "/"
-    if not args.real_dir.endswith("/"): args.real_dir += "/"
-    if not args.fake_dir.endswith("/"): args.fake_dir += "/"
-
+def get_optimal_threshold_from_train(directories):
     # train
-    real = count_dir(args.train_dir, args.real_dir)
-    fake = count_dir(args.train_dir, args.fake_dir)
+    real = count_dir(directories.train_dir, directories.real_dir)
+    fake = count_dir(directories.train_dir, directories.fake_dir)
 
     real_ratios = []
     for art_id in real:
@@ -70,9 +57,24 @@ if __name__ == "__main__":
         print (threshold, accuracy)
     result = sorted(results, key=operator.itemgetter(1), reverse=True)[0]
     print "and the winner is... %f with a training accuracy of %f" % result
+    return result[0]
 
-    # TODO: test this on dev set
-    threshold = result[0]
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=('desc'))
+    parser.add_argument("-td", "--train_dir", dest="train_dir", default="data/train/", help="train dir")
+    parser.add_argument("-dd", "--dev_dir", dest="dev_dir", default="data/dev/", help="dev dir")
+    parser.add_argument("-r", "--real_dir", dest="real_dir", default="real/", help="real dir")
+    parser.add_argument("-f", "--fake_dir", dest="fake_dir", default="fake/", help="fake dir")
+    args = parser.parse_args()
+
+    if not args.train_dir.endswith("/"): args.train_dir += "/"
+    if not args.dev_dir.endswith("/"): args.dev_dir += "/"
+    if not args.real_dir.endswith("/"): args.real_dir += "/"
+    if not args.fake_dir.endswith("/"): args.fake_dir += "/"
+
+    threshold = get_optimal_threshold_from_train(args)
+
     # dev
     real = count_dir(args.dev_dir, args.real_dir)
     fake = count_dir(args.dev_dir, args.fake_dir)
