@@ -112,9 +112,7 @@ def test_threshold_on_dev(threshold, directories):
     print "dev", threshold, accuracy
 
 def generate_features_for_all(directories):
-    # store the features in the hardcoded "top_word_rel_freq"
-    features_dir = get_dir('run/FEATURES/top_word_rel_freq', True)
-
+    features_dir = get_dir(directories.features_dir, False)
     for corpus_name in ('train', 'dev'):
         for class_name in ('real', 'fake'):
             generate_features(corpus_name, class_name, directories, features_dir)
@@ -141,6 +139,7 @@ if __name__ == "__main__":
     parser.add_argument("-dd", "--dev_dir", dest="dev_dir", default="data/dev/", help="dev dir")
     parser.add_argument("-r", "--real_dir", dest="real_dir", default="real/", help="real dir")
     parser.add_argument("-f", "--fake_dir", dest="fake_dir", default="fake/", help="fake dir")
+    parser.add_argument("-fd", "--features_dir", dest="features_dir", default="run/FEATURES/top_word_rel_freq", help="directory where to put the features")
     args = parser.parse_args()
 
     if not args.train_dir.endswith("/"): args.train_dir += "/"
