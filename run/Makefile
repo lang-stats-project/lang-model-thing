@@ -22,6 +22,10 @@ target.unigram-features:
 	rm VOCAB
 	touch $@
 
+target.word-frequencies:
+	test -e FEATURES/top_word_rel_freq || mkdir FEATURES/top_word_rel_freq
+	word_frequencies.py -td ../data/train/ -dd ../data/dev/ -fd FEATURES/top_word_rel_freq
+
 eval.%: run.%
 	merge-features.py $< $< train
 	merge-features.py $< $< dev
