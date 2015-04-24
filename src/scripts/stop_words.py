@@ -1,6 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import re
+
 #from nltk.corpus import stopwords
 #stop = stopwords.words('english')
 #for word in sorted(stop): print word
