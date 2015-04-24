@@ -25,8 +25,8 @@ class Article:
 
     # count words and content words
     def process(self):
-        self.words = Counter()
-        self.content_words = Counter()
+        self.words = Counter() # excluding <s> and </s>
+        self.content_words = Counter() # only content words
         with open(self.filepath, 'r') as article_file:
             for line in article_file:
                 for word in line.split():
@@ -35,15 +35,10 @@ class Article:
                         self.words[word] += 1
                         if not is_stop(word):
                             self.content_words[word] += 1
-        self.q_content_words = sum(self.content_words.values()) # only content words
-        self.q_words = sum(self.words.values()) # excluding <s> and </s>
 
-    def get_most_frequent_word_prob(self, debug=False):
+    def get_most_frequent_word_prob(self):
         most_freq_content_words = self.content_words.most_common(1)[0][1]
-        ratio = most_freq_content_words / float(self.q_content_words)
-        if debug and random() > 0.9:
-            print "size: %d, most freq: %d, ratio: %f" % (self.q_content_words, most_freq_content_words, ratio)
-        return ratio
+        return most_freq_content_words / sum(self.content_words.values(), 0.0)
 
 
 def get_entropy(counts):
