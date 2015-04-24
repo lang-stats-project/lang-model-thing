@@ -47,11 +47,13 @@ merged.dev.%: run.%
 	merge-features.py $< $* dev
 merged.train.%: run.%
 	merge-features.py $< $* train
+
+SVM_PARAMS=-s 0 -t 2
 gridsearch.%: merged.train.%
-	grid.py -log2c -3,3,2 -log2g -3,3,2 -v 3 -gnuplot null -svmtrain ../bin/svm-train $< > $@
+	grid.py ${SVM_PARAMS} -log2c -11,11,2 -log2g -11,11,2 -v 4 -gnuplot null -svmtrain ../bin/svm-train $< > $@
 
 eval.%: gridsearch.% merged.train.% merged.dev.%
-	svm-train -s 0 -t 2 -g `tail -1 $< | awk '{print $$2}'` -c `tail -1 $< | awk '{print $$1}'` -m 10000 merged.dev.$* model.$*
+	svm-train ${SVM_PARAMS} -g `tail -1 $< | awk '{print $$2}'` -c `tail -1 $< | awk '{print $$1}'` -m 10000 merged.train.$* model.$*
 	svm-predict merged.dev.$* model.$* merged.dev.$*.output > $@
 	test -e RUN$* || mkdir RUN$*
-	mv merged.*.$* model.$* gridsearch.$* RUN$*
+	mv merged.*.$* merged.*.$*.* model.$* gridsearch.$* RUN$*
