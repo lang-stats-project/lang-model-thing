@@ -63,7 +63,11 @@ def count_dir(corpus_dir, sub_dir_name):
     return articles
 
 def extract_features(article, debug=False):
-    return (article.get_most_frequent_word_prob(), get_entropy(article.words), get_entropy(article.content_words))
+    return (
+        article.get_most_frequent_word_prob(),
+        get_entropy(article.words),
+        get_entropy(article.content_words)
+        )
 
 def get_optimal_threshold_from_train(directories):
     # train
