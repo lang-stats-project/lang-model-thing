@@ -15,3 +15,4 @@ run/target.*
 run/RUN*
 run/FEATURES/*
 run/attic
+run/run.*
