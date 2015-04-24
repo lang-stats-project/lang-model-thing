@@ -129,7 +129,7 @@ def generate_features(corpus_name, class_name, directories, features_dir):
         filename = "%s.%s.%s.f" % (corpus_name, class_name, article)
         filename = os.path.join(features_dir, filename)
         with open(filename, 'w') as feature_file:
-            feature_values = '\t'.join(['%.8f' % feature for feature in extract_features(klass_articles[article])])
+            features_values = '\t'.join(['%.8f' % feature for feature in extract_features(klass_articles[article])])
             feature_file.write(features_values)
 
 
