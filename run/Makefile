@@ -5,6 +5,7 @@ export SHELL := /bin/bash
 CLASSIFIER=svm-
 
 target.random-features.%:
+	test -e FEATURES || mkdir FEATURES
 	test -e FEATURES/random$* || mkdir FEATURES/random$*
 	find ../data/train/fake -name \*.txt | xargs -I '{}' random-feature.py '{}' $* 'FEATURES/random$*/train.fake.'
 	find ../data/train/real -name \*.txt | xargs -I '{}' random-feature.py '{}' $* 'FEATURES/random$*/train.real.'
@@ -13,6 +14,7 @@ target.random-features.%:
 	touch $@
 
 target.unigram-features:
+	test -e FEATURES || mkdir FEATURES
 	find ../data/train -name \*.txt | xargs -I '{}' cat '{}' | awk '{for(i=1;i<=NF;i++)print $$i}' | sort | uniq -c | awk '{print $$2}' > VOCAB
 	test -e FEATURES/unigram || mkdir FEATURES/unigram
 	find ../data/train/fake -name \*.txt | xargs -I '{}' unigram-feature.py '{}' VOCAB $* 'FEATURES/unigram/train.fake.'
