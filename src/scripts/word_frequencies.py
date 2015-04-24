@@ -62,12 +62,18 @@ def count_dir(corpus_dir, sub_dir_name):
         # if len(articles_counts) > 20: break
     return articles
 
-def extract_features(article, debug=False):
-    return (
-        article.get_most_frequent_word_prob(),
-        get_entropy(article.words),
-        get_entropy(article.content_words)
-        )
+def extract_features(article, feature_name):
+    if feature_name == 'most_freq_content_word_prob':
+        return article.get_most_frequent_word_prob()
+    if feature_name == 'words_h':
+        return get_entropy(article.words)
+    if feature_name == 'content_words_h':
+        return get_entropy(article.content_words)
+    if feature_name == 'q_words':
+        return sum(article.words.values(), 0.0)
+    if feature_name == 'q_content_words':
+        return sum(article.content_words.values(), 0.0)
+    raise ValueError("unknown feature " + feature_name)
 
 def get_optimal_threshold_from_train(directories):
     # train
@@ -114,23 +120,25 @@ def test_threshold_on_dev(threshold, directories):
     print "dev", threshold, accuracy
 
 def generate_features_for_all(directories):
-    features_dir = get_dir(directories.features_dir, False)
     for corpus_name in ('train', 'dev'):
         for class_name in ('real', 'fake'):
-            generate_features(corpus_name, class_name, directories, features_dir)
+            generate_features(corpus_name, class_name, directories)
 
 
-def generate_features(corpus_name, class_name, directories, features_dir):
+def generate_features(corpus_name, class_name, directories):
+    features_dir = get_dir(directories.features_dir, False)
     directories = vars(directories)
     corpus_dir = directories[corpus_name + '_dir']
     class_dir = directories[class_name + '_dir']
     klass_articles = count_dir(corpus_dir, class_dir)
     for article in klass_articles:
         filename = "%s.%s.%s.f" % (corpus_name, class_name, article)
-        filename = os.path.join(features_dir, filename)
-        with open(filename, 'w') as feature_file:
-            features_values = '\t'.join(['%.8f' % feature for feature in extract_features(klass_articles[article])])
-            feature_file.write(features_values)
+        for feature in 'most_freq_content_word_prob words_h content_words_h q_words q_content_words'.split():
+            feature_dir = get_dir(os.path.join(features_dir, feature), True)
+            feature_filename = os.path.join(feature_dir, filename)
+            with open(feature_filename, 'w') as feature_file:
+                feature_value = '%.8f' % extract_features(klass_articles[article], feature)
+                feature_file.write(feature_value)
 
 
 if __name__ == "__main__":
@@ -139,7 +147,7 @@ if __name__ == "__main__":
     parser.add_argument("-dd", "--dev_dir", dest="dev_dir", default="data/dev/", help="dev dir")
     parser.add_argument("-r", "--real_dir", dest="real_dir", default="real/", help="real dir")
     parser.add_argument("-f", "--fake_dir", dest="fake_dir", default="fake/", help="fake dir")
-    parser.add_argument("-fd", "--features_dir", dest="features_dir", default="run/FEATURES/top_word_rel_freq", help="directory where to put the features")
+    parser.add_argument("-fd", "--features_dir", dest="features_dir", default="run/FEATURES/", help="directory where to put the features")
     args = parser.parse_args()
 
     if not args.train_dir.endswith("/"): args.train_dir += "/"

@@ -25,8 +25,8 @@ target.unigram-features:
 	touch $@
 
 target.word-frequencies:
-	test -e FEATURES/top_word_rel_freq || mkdir FEATURES/top_word_rel_freq
-	word_frequencies.py -td ../data/train/ -dd ../data/dev/ -fd FEATURES/top_word_rel_freq
+	test -e FEATURES || mkdir FEATURES
+	word_frequencies.py -td ../data/train/ -dd ../data/dev/ -fd FEATURES
 
 eval.%: run.%
 	merge-features.py $< $< train
