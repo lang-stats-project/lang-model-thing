@@ -73,6 +73,8 @@ def extract_features(article, feature_name):
         return sum(article.words.values(), 0.0)
     if feature_name == 'q_content_words':
         return sum(article.content_words.values(), 0.0)
+    if feature_name == 'most_freq_content_word_prob_x_q_content_words':
+        return sum(article.content_words.values(), 0.0) * article.get_most_frequent_word_prob()
     raise ValueError("unknown feature " + feature_name)
 
 def get_optimal_threshold_from_train(directories):
@@ -133,7 +135,7 @@ def generate_features(corpus_name, class_name, directories):
     klass_articles = count_dir(corpus_dir, class_dir)
     for article in klass_articles:
         filename = "%s.%s.%s.f" % (corpus_name, class_name, article)
-        for feature in 'most_freq_content_word_prob words_h content_words_h q_words q_content_words'.split():
+        for feature in 'most_freq_content_word_prob words_h content_words_h q_words q_content_words most_freq_content_word_prob_x_q_content_words'.split():
             feature_dir = get_dir(os.path.join(features_dir, feature), True)
             feature_filename = os.path.join(feature_dir, filename)
             with open(feature_filename, 'w') as feature_file:
