@@ -1,4 +1,4 @@
-all: liblinear libsvm python
+all: liblinear libsvm python cmu-lm
 
 liblinear: check
 	test -e ../src/liblinear-1.96 || (wget -O liblinear.tar.gz http://www.csie.ntu.edu.tw/~cjlin/cgi-bin/liblinear.cgi?+http://www.csie.ntu.edu.tw/~cjlin/liblinear+tar.gz; 	tar xvf liblinear.tar.gz -C ../src)
@@ -19,8 +19,13 @@ python: check
 	ln -s ../src/scripts/*.py .
 	chmod +x *.py
 
+cmu-lm: check
+	cd ../src/CMU-Cam_Toolkit_v2/src; make
+	mv ../src/CMU-Cam_Toolkit_v2/src/evallm .
+	cd ../src/CMU-Cam_Toolkit_v2/src; ls -l | grep '^\S*x\S*' | grep -v "drwxr" | awk '{print $NF}' | xargs -I '{}' rm -f '{}' ; make clean
+
 check:
 	true
 
 clean:
-	rm -rf *.py train predict ../src/liblinear-1.96
+	rm -rf *.py *train *predict ../src/liblinear-1.96 evallm
