@@ -1,10 +1,11 @@
-export PATH:=${PATH}:../bin:. # Binaries in the bin directory
+export PATH:=../bin:${PATH} # Binaries in the bin directory
 export SHELL := /bin/bash
-.PRECIOUS:
+.PRECIOUS: gridsearch.% merged.train.% merged.dev.%
 
 CLASSIFIER=svm-
 
 target.random-features.%:
+	cd ../bin ; make python
 	test -e FEATURES || mkdir FEATURES
 	test -e FEATURES/random$* || mkdir FEATURES/random$*
 	find ../data/train/fake -name \*.txt | xargs -I '{}' random-feature.py '{}' $* 'FEATURES/random$*/train.fake.'
@@ -14,6 +15,7 @@ target.random-features.%:
 	touch $@
 
 target.unigram-features:
+	cd ../bin ; make python
 	test -e FEATURES || mkdir FEATURES
 	find ../data/train -name \*.txt | xargs -I '{}' cat '{}' | awk '{for(i=1;i<=NF;i++)print $$i}' | sort | uniq -c | awk '{print $$2}' > VOCAB
 	test -e FEATURES/unigram || mkdir FEATURES/unigram
@@ -24,14 +26,32 @@ target.unigram-features:
 	rm VOCAB
 	touch $@
 
+target.3gram-lm-features:
+	cd ../bin ; make evallm python
+	tar xvfz ../data/projectLM.binlm.tar.gz -C .
+	test -e FEATURES || mkdir FEATURES
+	test -e FEATURES/3gram-lm || mkdir FEATURES/3gram-lm
+	find ../data/train/fake -name \*.txt | xargs -I '{}' run-lm.py '{}' projectLM.binlm 'FEATURES/3gram-lm/train.fake.'
+	find ../data/train/real -name \*.txt | xargs -I '{}' run-lm.py '{}' projectLM.binlm 'FEATURES/3gram-lm/train.real.'
+	find ../data/dev/fake -name \*.txt | xargs -I '{}' run-lm.py '{}' projectLM.binlm 'FEATURES/3gram-lm/dev.fake.'
+	find ../data/dev/real -name \*.txt | xargs -I '{}' run-lm.py '{}' projectLM.binlm 'FEATURES/3gram-lm/dev.real.'
+	rm projectLM.binlm
+	touch $@
+
+
 target.word-frequencies:
 	test -e FEATURES/top_word_rel_freq || mkdir FEATURES/top_word_rel_freq
 	word_frequencies.py -td ../data/train/ -dd ../data/dev/ -fd FEATURES/top_word_rel_freq
 
-eval.%: run.%
-	merge-features.py $< $< train
-	merge-features.py $< $< dev
-	${CLASSIFIER}train merged.train.$<
-	${CLASSIFIER}predict merged.dev.$< merged.train.$<.model merged.dev.$<.output > $@
+merged.dev.%: run.%
+	merge-features.py $< $* dev
+merged.train.%: run.%
+	merge-features.py $< $* train
+gridsearch.%: merged.train.%
+	grid.py -log2c -3,3,2 -log2g -3,3,2 -v 3 -gnuplot null -svmtrain ../bin/svm-train $< > $@
+
+eval.%: gridsearch.% merged.train.% merged.dev.%
+	svm-train -s 0 -t 2 -g `tail -1 $< | awk '{print $$2}'` -c `tail -1 $< | awk '{print $$1}'` -m 10000 merged.dev.$* model.$*
+	svm-predict merged.dev.$* model.$* merged.dev.$*.output > $@
 	test -e RUN$* || mkdir RUN$*
-	mv merged.*.$<* RUN$*
+	mv merged.*.$* model.$* gridsearch.$* RUN$*
