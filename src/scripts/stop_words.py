@@ -123,8 +123,6 @@ your
 yours
 yourself
 yourselves
-</s>
-<s>
 one
 two
 three
@@ -157,7 +155,8 @@ every
 all
 none
 """
-stop_words = stop_words.split()
+delimeters = ['</s>', '<s>']
+stop_words = delimeters + stop_words.split()
 
 bad_res = [
     r"\w*'\w*",
@@ -174,3 +173,6 @@ def is_stop(word):
         if match:
             return True
     return False
+
+def is_delimeter(word):
+    return word in delimeters
