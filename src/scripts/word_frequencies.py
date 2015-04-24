@@ -23,17 +23,20 @@ class Article:
         self.id = os.path.basename(self.filepath).split('.')[0]
         self.process()
 
+    # count words and content words
     def process(self):
+        self.words = Counter()
         self.content_words = Counter()
-        self.length = 0
         with open(self.filepath, 'r') as article_file:
             for line in article_file:
                 for word in line.split():
-                    self.length += 1 # TODO: this is including <s> and </s>
                     word = word.lower()
-                    if not is_stop(word):
-                        self.content_words[word] += 1
-        self.q_content_words = sum(self.content_words.values())
+                    if not is_delimeter(word):
+                        self.words[word] += 1
+                        if not is_stop(word):
+                            self.content_words[word] += 1
+        self.q_content_words = sum(self.content_words.values()) # only content words
+        self.q_words = sum(self.words.values()) # excluding <s> and </s>
 
     def get_most_frequent_word_prob(self, debug=False):
         most_freq_content_words = self.content_words.most_common(1)[0][1]
@@ -65,7 +68,7 @@ def count_dir(corpus_dir, sub_dir_name):
     return articles
 
 def extract_features(article, debug=False):
-    return (article.get_most_frequent_word_prob(), article.get_entropy())
+    return (article.get_most_frequent_word_prob(), get_entropy(article.words), get_entropy(article.content_words))
 
 def get_optimal_threshold_from_train(directories):
     # train
