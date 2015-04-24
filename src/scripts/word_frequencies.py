@@ -42,14 +42,14 @@ class Article:
             print "size: %d, most freq: %d, ratio: %f" % (self.q_content_words, most_freq_content_words, ratio)
         return ratio
 
-    def get_entropy(self):
-        # only of the content words
-        h = 0
-        for word in self.content_words:
-            p_word = self.content_words[word] / float(self.q_content_words)
-            h -= p_word * log(p_word)
-        return h
 
+def get_entropy(counts):
+    q = sum(counts.values(), 0.0)
+    h = 0
+    for word in counts:
+        p_word = counts[word] / q
+        h = p_word * log(p_word, 2)
+    return h # should be negative
 
 # corpus is train/dev; sub_dir is real/fake
 def count_dir(corpus_dir, sub_dir_name):
