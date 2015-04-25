@@ -4,7 +4,6 @@ import threading
 import multiprocessing
 import gc
 import re  
-from dbg import debug
 
 # get numpy
 sys.path.append("/home/iyu/sfep/asr_noisemes/base/lib/python2.7/site-packages")
@@ -64,7 +63,7 @@ class workerThread(threading.Thread):
             vec = self.output_files[filename]
             f = open(self.output_directory + filename,"w")
             string = ""
-            for i in xrange(0,len(vec)):
+            for i in range(0,len(vec)):
                 string += str(i+1) + ":" + str(vec[i]) + " "
             print("Writing file "+filename+"...")
             f.write(string)
@@ -83,7 +82,7 @@ class workerThread(threading.Thread):
         video_word_distributions = self.VTD
         #video_word_distributions = numpy.dot(self.VTD, self.TTD)
         #del self.VTD # free up the memory...
-        for i in xrange(0,len(self.asr_data)):
+        for i in range(0,len(self.asr_data)):
             video = self.asr_data[i][1] 
             vec = video_word_distributions[i]
             # fill the buffer
@@ -143,7 +142,7 @@ asr_data = []
 vtd_buffer = []
 last_index = len(asr_data_list)-1
 print("Here we go...")
-for i in xrange(len(asr_data_list)):
+for i in range(len(asr_data_list)):
    
     # check if we've already done this computation, i.e.
     # a .bof file already exists...
