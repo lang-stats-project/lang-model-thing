@@ -22,7 +22,8 @@ python: check
 evallm: check
 	cd ../src/CMU-Cam_Toolkit_v2/src; make
 	mv ../src/CMU-Cam_Toolkit_v2/src/evallm .
-	cd ../src/CMU-Cam_Toolkit_v2/src; ls -l | grep '^\S*x\S*' | grep -v "drwxr" | awk '{print $NF}' | xargs -I '{}' rm -f '{}' ; make clean
+	cd ../src/CMU-Cam_Toolkit_v2/src; make clean
+	cd ../src/CMU-Cam_Toolkit_v2/src; ls -l | grep '^\S*x\S*' | grep -v "drwxr" | awk '{print $$NF}' | xargs -I '{}' rm -f '{}'
 
 check:
 	true
