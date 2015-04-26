@@ -52,6 +52,7 @@ target.4gram-lm-features:
 
 
 target.word-frequencies:
+	cd ../bin; make python
 	test -e FEATURES || mkdir FEATURES
 	word_frequencies.py -td ../data/train/ -dd ../data/dev/ -fd FEATURES
 

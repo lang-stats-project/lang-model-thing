@@ -49,6 +49,13 @@ def get_entropy(counts):
         h = p_word * log(p_word, 2)
     return h # should be negative
 
+def get_mean(counts):
+    return sum(counts.values(), 0.0) / len(counts.values())
+
+def get_variance(counts):
+    mean = get_mean(counts)
+    return sum([(counts[word] - mean) ** 2 for word in counts]) / len(counts.values())
+
 # corpus is train/dev; sub_dir is real/fake
 def count_dir(corpus_dir, sub_dir_name):
     full_dir = os.path.join(corpus_dir, sub_dir_name)
@@ -75,6 +82,12 @@ def extract_features(article, feature_name):
         return sum(article.content_words.values(), 0.0)
     if feature_name == 'most_freq_content_word_prob_x_q_content_words':
         return sum(article.content_words.values(), 0.0) * article.get_most_frequent_word_prob()
+    if feature_name == 'words_h_x_q_words':
+        return get_entropy(article.words) * sum(article.words.values(), 0.0)
+    if feature_name == 'var_words':
+        return get_variance(article.words)
+    if feature_name == 'var_content_words':
+        return get_variance(article.content_words)
     raise ValueError("unknown feature " + feature_name)
 
 def get_optimal_threshold_from_train(directories):
@@ -126,6 +139,18 @@ def generate_features_for_all(directories):
         for class_name in ('real', 'fake'):
             generate_features(corpus_name, class_name, directories)
 
+all_features = [
+    'most_freq_content_word_prob',
+    'words_h',
+    'content_words_h',
+    'q_words',
+    'q_content_words',
+    'most_freq_content_word_prob_x_q_content_words',
+    'words_h_x_q_words',
+    'var_content_words',
+    'var_words'
+]
+
 
 def generate_features(corpus_name, class_name, directories):
     features_dir = get_dir(directories.features_dir, False)
@@ -135,7 +160,7 @@ def generate_features(corpus_name, class_name, directories):
     klass_articles = count_dir(corpus_dir, class_dir)
     for article in klass_articles:
         filename = "%s.%s.%s.f" % (corpus_name, class_name, article)
-        for feature in 'most_freq_content_word_prob words_h content_words_h q_words q_content_words most_freq_content_word_prob_x_q_content_words'.split():
+        for feature in all_features:
             feature_dir = get_dir(os.path.join(features_dir, feature), True)
             feature_filename = os.path.join(feature_dir, filename)
             with open(feature_filename, 'w') as feature_file:
