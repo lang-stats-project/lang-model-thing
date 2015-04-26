@@ -4,16 +4,16 @@
 # =============================================================== #
 # --------------------------------------------------------------- #
 # if you want to create new ASR input for your topic modeling (recommended)
-NEW_CSV_FILE=true 
+NEW_CSV_FILE=true	 
 # --------------------------------------------------------------- #
 # CAREFUL! if you want to recreate the ASR output csv files instead of appending to the existing ones
-DESTROY_OLD_ASR_CSV_FILES=true 
+DESTROY_OLD_ASR_CSV_FILES=true
 # --------------------------------------------------------------- #
 # set if you want to create a NEW topic model and delete the topic model with the same name (recommended)
-NEW_TOPIC_MODEL=true 
+NEW_TOPIC_MODEL=false 
 # --------------------------------------------------------------- #
 # set if you want to predict topic distributions for new docs pointed to in $CSVTEST
-TEST_TOPIC_MODEL=true 
+TEST_TOPIC_MODEL=false 
 # --------------------------------------------------------------- #
 # CAREFUL! only if you want to REMOVE the old .bof files and erase them. 
 DESTROY_OLD_BOF_FILES=false 
@@ -26,14 +26,14 @@ NEW_BOF_FILES=false
 # CONFIGURE ALL TOPIC MODELING PARAMETERS 
 # =============================================================== #
 #
-NUM_TOPICS=250
-ITERATIONS=300
+NUM_TOPICS=50
+ITERATIONS=100
 MIN_WORD_LENGTH=2
 MIN_DOCUMENT_LENGTH=1
 NUM_STOP_WORDS=1
-TOP_TERMS=50
-#TOPIC_MODEL_MEMORY="20480m"
-TOPIC_MODEL_MEMORY="10240m"
+TOP_TERMS=25
+TOPIC_MODEL_MEMORY="20480m"
+#TOPIC_MODEL_MEMORY="10240m"
 #TOPIC_MODEL_MEMORY="32768m" 
 #
 # --------------------------------------------------------------- #
@@ -80,7 +80,6 @@ else
 	BOF_DIRECTORY=$1
 
 fi
-
 # --------------------------------------------------------------- #
 # FILES TO TEST TOPIC MODEL ON...
 # --------------------------------------------------------------- #
@@ -116,23 +115,15 @@ if [ ! -z "$3" ]; then
 
 	# --------------------------------------------------------------- #
 	# THIS IS WHERE WE SET THE NAME OF THE MODEL!
-	echo -n "lda-topic-model-"$TRAIN_PREFIX"-"$NUM_TOPICS >> $MODELFILE
+	echo "lda-topic-model-"$TRAIN_PREFIX"-"$NUM_TOPICS >> $MODELFILE
+	echo $MODELFILE
 	# --------------------------------------------------------------- #
-
-else # nothing to train on... we just use this blank file. 
-
-	NEW_TOPIC_MODEL=false
-	NULLFILE="null.idx"
-	rm $NULLFILE
-	echo -n "" >> $NULLFILE
-	TRAIN_FILE=$NULLFILE 
-
 fi
 if [ ! -s "$MODELFILE" ]; then
 
-	echo -n "" >> $MODELFILE
+	echo "" >> $MODELFILE
 	echo "No current topic model found! Try resetting the value in the 'model' file to the name of an existing model or train a new model."
-	echo -e $OPTSTRING
+	echo -e :q$OPTSTRING
 	echo "Script will now exit..."
 	exit 1
 
@@ -150,11 +141,17 @@ MODEL=$(head -1 $MODELFILE)
 HOME_DIRECTORY=$(pwd)
 TMP_MODEL="${MODEL%-*}"
 NUM_TOPICS="${MODEL##*-}" # reassign! 
-CSVTRAIN=$TMP_MODEL"-train.csv"
+CSVTRAIN=$TRAIN_PREFIX"-train.csv"
 CSVTEST=$TEST_PREFIX"-test.csv"
 TOPIC_MODEL_OUTPUT=$TMP_MODEL"-"$TEST_PREFIX"-"$NUM_TOPICS"-output.txt"
-CONFIG_FILE=$TMP_MODEL"-"$TEST_PREFIX"-"$NUM_TOPICS"-config"
 BOF_LIST_FILE=$TMP_MODEL"-"$TEST_PREFIX"-"$NUM_TOPICS"-bof-list.list"
+echo "HOME DIRECTORY: "$HOME_DIRECTORY
+echo "TMP_MODEL: "$TMP_MODEL
+echo "NUM_TOPICS: "$NUM_TOPICS
+echo "CSVTRAIN: "$CSVTRAIN
+echo "CSVTEST: "$CSVTEST
+echo "TOPIC_MODEL_OUTPUT: "$TOPIC_MODEL_OUTPUT
+echo "BOF_LIST_FILE: "$BOF_LIST_FILE
 #
 #
 # =============================================================== #
@@ -172,6 +169,8 @@ if [ "$DESTROY_OLD_ASR_CSV_FILES" = true ]; then
 		
 	echo "Removing old ASR files..."
 	cd $HOME_DIRECTORY
+	rm -rf $LOCAL_DATA_DIRECTORY
+	mkdir $LOCAL_DATA_DIRECTORY
 	rm $CSVTRAIN
 	rm $CSVTEST	
 	echo "Done!"
@@ -199,7 +198,7 @@ if [ "$DESTROY_OLD_BOF_FILES" = true ] ; then
 fi
 # Just to be safe...
 cd $HOME_DIRECTORY
-exit 0
+
 # =============================================================== #
 # THIS READS ALL OF YOUR .CONF FILES AND GENERATES CSV FILES WITH
 # VIDEO NAMES AND CONSOLIDATED ASR OUTPUT FROM .CONF FILES. MAKE
@@ -215,7 +214,8 @@ exit 0
 if [ "$NEW_CSV_FILE" = true ] ; then
 
 	echo "Generating output..."
-	python generate_csv_file_from_corpus.py $TRAIN_FILE
+	python split_data.py $LOCAL_DATA_DIRECTORY $TRAIN_FILE
+	python generate_csv_file_from_corpus.py $LOCAL_DATA_DIRECTORY $BOF_DIRECTORY
 
 fi
 # ================================================================================== #
@@ -224,7 +224,7 @@ fi
 if [ "$NEW_TOPIC_MODEL" = true ] ; then
 
 	echo "Generating new topic model with "$TRAIN_FILE"..."
-	java -jar -Xmx$TOPIC_MODEL_MEMORY tmt-0.4.0.jar event_topic_modeling_train.scala $MODEL $CSVTRAIN $NUM_TOPICS $ITERATIONS $MIN_WORD_LENGTH $NUM_STOP_WORDS $MIN_DOCUMENT_LENGTH
+	java -jar -Xmx$TOPIC_MODEL_MEMORY tmt-0.4.0.jar event_topic_modeling_train.scala $MODEL $LOCAL_DATA_DIRECTORY/$CSVTRAIN $NUM_TOPICS $ITERATIONS $MIN_WORD_LENGTH $NUM_STOP_WORDS $MIN_DOCUMENT_LENGTH
 
 fi
 # ================================================================================== #
@@ -233,9 +233,11 @@ fi
 if [ "$TEST_TOPIC_MODEL" = true ] ; then
 
 	echo "Testing topic model "$MODEL"..."
-	java -jar -Xmx$TOPIC_MODEL_MEMORY tmt-0.4.0.jar event_topic_modeling_test.scala $MODEL $CSVTEST $TOP_TERMS
+	java -jar -Xmx$TOPIC_MODEL_MEMORY tmt-0.4.0.jar event_topic_modeling_test.scala $MODEL $LOCAL_DATA_DIRECTORY/$CSVTEST $TOP_TERMS
 
 fi
+echo "Done!"
+exit 0
 # =============================================================== #
 # BAG OF FEATURE GENERATION
 # =============================================================== #
@@ -249,4 +251,3 @@ fi
 # FINISH
 # =============================================================== #
 echo "Done!"
-exit 0

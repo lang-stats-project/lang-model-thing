@@ -3,15 +3,11 @@
 # SWITCHES
 # =============================================================== #
 # --------------------------------------------------------------- #
-# CAREFUL! set if you want to destroy the previous set of files / config in the LOCAL_CONF_DIRECTORY
-# works better if you get the conf files fresh each time...
-DESTROY_OLD_CONF_FILES=false
-# --------------------------------------------------------------- #
 # if you want to create new ASR input for your topic modeling (recommended)
-NEW_ASR_FROM_CONF_FILES=false 
+NEW_CSV_FILE=true 
 # --------------------------------------------------------------- #
 # CAREFUL! if you want to recreate the ASR output csv files instead of appending to the existing ones
-DESTROY_OLD_ASR_CSV_FILES=false 
+DESTROY_OLD_ASR_CSV_FILES=true 
 # --------------------------------------------------------------- #
 # set if you want to create a NEW topic model and delete the topic model with the same name (recommended)
 NEW_TOPIC_MODEL=true 
@@ -20,38 +16,31 @@ NEW_TOPIC_MODEL=true
 TEST_TOPIC_MODEL=true 
 # --------------------------------------------------------------- #
 # CAREFUL! only if you want to REMOVE the old .bof files and erase them. 
-DESTROY_OLD_BOF_FILES=true 
+DESTROY_OLD_BOF_FILES=false 
 # --------------------------------------------------------------- #
 # if you want to generate the .bof files to run the evaluation pipeline
-NEW_BOF_FILES=true 
+NEW_BOF_FILES=false 
 # --------------------------------------------------------------- #
 #
 # =============================================================== #
 # CONFIGURE ALL TOPIC MODELING PARAMETERS 
 # =============================================================== #
 #
-NUM_TOPICS=250
-ITERATIONS=300
+NUM_TOPICS=25
+ITERATIONS=100
 MIN_WORD_LENGTH=2
 MIN_DOCUMENT_LENGTH=1
 NUM_STOP_WORDS=1
-TOP_TERMS=50
-#TOPIC_MODEL_MEMORY="20480m"
-TOPIC_MODEL_MEMORY="10240m"
+TOP_TERMS=25
+TOPIC_MODEL_MEMORY="20480m"
+#TOPIC_MODEL_MEMORY="10240m"
 #TOPIC_MODEL_MEMORY="32768m" 
 #
 # --------------------------------------------------------------- #
 # location of all .conf files...
 # --------------------------------------------------------------- #
 #
-CONF_FILES_DIRECTORY="conf"
-#CONF_FILES_DIRECTORY="/home/nwolfe/kaldi/confs-allsegs"
-#CONF_FILES_DIRECTORY="/home/nwolfe/kaldi/confs-speechonly"
-#CONF_FILES_DIRECTORY="/data/ASR1/med-12/ASR-Cluny/test-hvc-MED14-MEDTEST-EK100"
-CONF_ID_FILE_MAPPING="conf.list"
-#CONF_ID_FILE_MAPPING="conf-kaldi-speechonly.list"
-#CONF_ID_FILE_MAPPING="conf-kaldi-allsegs.list"
-LOCAL_CONF_DIRECTORY="OUT"
+LOCAL_DATA_DIRECTORY="data"
 #
 #
 #
@@ -74,7 +63,7 @@ LOCAL_CONF_DIRECTORY="OUT"
 #
 #
 # This is the output directory for the .bof generation...
-OPTSTRING="Should be: \n\n\trun.sh -->\n\t\t1. [output dir for .bof files] \n\t\t2. [an .idx file w/ list of video ids to generate .bof files from] \n\t\t3. [OPTIONAL: labelset .idx file to train new topic model]\n"
+OPTSTRING="Should be: \n\n\trun.sh -->\n\t\t1. [output dir for .bof files] \n\t\t2. [an .idx file w/ list of video ids to generate .bof files from] \n\t\t3. [OPTIONAL: TRAIN_FILE .idx file to train new topic model]\n"
 #
 # --------------------------------------------------------------- #
 # DIRECTORY TO WRITE .BOF FILES OUT TO...
@@ -91,7 +80,6 @@ else
 	BOF_DIRECTORY=$1
 
 fi
-
 # --------------------------------------------------------------- #
 # FILES TO TEST TOPIC MODEL ON...
 # --------------------------------------------------------------- #
@@ -106,8 +94,8 @@ if [ -z "$2" ]; then
 
 else
 
-	TEST_IDX_FILE=$2
-	FILE="${TEST_IDX_FILE##*/}" 
+	TEST_FILE=$2
+	FILE="${TEST_FILE##*/}" 
 	TEST_PREFIX="${FILE%.*}" 
 
 fi
@@ -120,30 +108,22 @@ MODELFILE="model" # LEAVE THIS ALONE!!!! #
 
 if [ ! -z "$3" ]; then
 
-	LABELSET=$3
-	FILE="${LABELSET##*/}" 
+	TRAIN_FILE=$3
+	FILE="${TRAIN_FILE##*/}" 
 	TRAIN_PREFIX="${FILE%.*}"
 	rm $MODELFILE
 
 	# --------------------------------------------------------------- #
 	# THIS IS WHERE WE SET THE NAME OF THE MODEL!
-	echo -n "lda-topic-model-"$TRAIN_PREFIX"-"$NUM_TOPICS >> $MODELFILE
+	echo "lda-topic-model-"$TRAIN_PREFIX"-"$NUM_TOPICS >> $MODELFILE
+	echo $MODELFILE
 	# --------------------------------------------------------------- #
-
-else # nothing to train on... we just use this blank file. 
-
-	NEW_TOPIC_MODEL=false
-	NULLFILE="null.idx"
-	rm $NULLFILE
-	echo -n "" >> $NULLFILE
-	LABELSET=$NULLFILE 
-
 fi
 if [ ! -s "$MODELFILE" ]; then
 
-	echo -n "" >> $MODELFILE
+	echo "" >> $MODELFILE
 	echo "No current topic model found! Try resetting the value in the 'model' file to the name of an existing model or train a new model."
-	echo -e $OPTSTRING
+	echo -e :q$OPTSTRING
 	echo "Script will now exit..."
 	exit 1
 
@@ -161,12 +141,17 @@ MODEL=$(head -1 $MODELFILE)
 HOME_DIRECTORY=$(pwd)
 TMP_MODEL="${MODEL%-*}"
 NUM_TOPICS="${MODEL##*-}" # reassign! 
-CSVTRAIN=$TMP_MODEL"-train.csv"
+CSVTRAIN=$TRAIN_PREFIX"-train.csv"
 CSVTEST=$TEST_PREFIX"-test.csv"
-CSVCOMPOSITE=$TMP_MODEL"-"$TEST_PREFIX"-composite-train-test.csv"
 TOPIC_MODEL_OUTPUT=$TMP_MODEL"-"$TEST_PREFIX"-"$NUM_TOPICS"-output.txt"
-CONFIG_FILE=$TMP_MODEL"-"$TEST_PREFIX"-"$NUM_TOPICS"-config"
 BOF_LIST_FILE=$TMP_MODEL"-"$TEST_PREFIX"-"$NUM_TOPICS"-bof-list.list"
+echo "HOME DIRECTORY: "$HOME_DIRECTORY
+echo "TMP_MODEL: "$TMP_MODEL
+echo "NUM_TOPICS: "$NUM_TOPICS
+echo "CSVTRAIN: "$CSVTRAIN
+echo "CSVTEST: "$CSVTEST
+echo "TOPIC_MODEL_OUTPUT: "$TOPIC_MODEL_OUTPUT
+echo "BOF_LIST_FILE: "$BOF_LIST_FILE
 #
 #
 # =============================================================== #
@@ -175,28 +160,17 @@ BOF_LIST_FILE=$TMP_MODEL"-"$TEST_PREFIX"-"$NUM_TOPICS"-bof-list.list"
 #
 # ...just in case...
 chmod +x *.py
-mkdir $LOCAL_CONF_DIRECTORY
+mkdir $LOCAL_DATA_DIRECTORY
 mkdir $BOF_DIRECTORY
 #
 # --------------------------------------------------------------- #
 #
-if [ "$DESTROY_OLD_CONF_FILES" = true ]; then
-
-	echo "Removing old .conf files..."
-	cd $HOME_DIRECTORY
-	cd $LOCAL_CONF_DIRECTORY
-	rm -rf *
-	cd $HOME_DIRECTORY
-	echo "Done!"
-
-fi
 if [ "$DESTROY_OLD_ASR_CSV_FILES" = true ]; then
 		
 	echo "Removing old ASR files..."
 	cd $HOME_DIRECTORY
 	rm $CSVTRAIN
 	rm $CSVTEST	
-	rm $CSVCOMPOSITE
 	echo "Done!"
 
 fi
@@ -222,6 +196,7 @@ if [ "$DESTROY_OLD_BOF_FILES" = true ] ; then
 fi
 # Just to be safe...
 cd $HOME_DIRECTORY
+
 # =============================================================== #
 # THIS READS ALL OF YOUR .CONF FILES AND GENERATES CSV FILES WITH
 # VIDEO NAMES AND CONSOLIDATED ASR OUTPUT FROM .CONF FILES. MAKE
@@ -234,10 +209,10 @@ cd $HOME_DIRECTORY
 # 2.) testing.csv
 # 3.) composite-train-test.csv
 # =============================================================== #
-if [ "$NEW_ASR_FROM_CONF_FILES" = true ] ; then
+if [ "$NEW_CSV_FILE" = true ] ; then
 
-	echo "Generating ASR output..."
-	./get_asr_output_parallelized.py $LOCAL_CONF_DIRECTORY $LABELSET $TEST_IDX_FILE $CONF_ID_FILE_MAPPING $CSVTRAIN $CSVTEST $CSVCOMPOSITE
+	echo "Generating output..."
+	python generate_csv_file_from_corpus.py $TRAIN_FILE
 
 fi
 # ================================================================================== #
@@ -245,7 +220,7 @@ fi
 # ================================================================================== #
 if [ "$NEW_TOPIC_MODEL" = true ] ; then
 
-	echo "Generating new topic model with "$LABELSET"..."
+	echo "Generating new topic model with "$TRAIN_FILE"..."
 	java -jar -Xmx$TOPIC_MODEL_MEMORY tmt-0.4.0.jar event_topic_modeling_train.scala $MODEL $CSVTRAIN $NUM_TOPICS $ITERATIONS $MIN_WORD_LENGTH $NUM_STOP_WORDS $MIN_DOCUMENT_LENGTH
 
 fi
@@ -258,13 +233,14 @@ if [ "$TEST_TOPIC_MODEL" = true ] ; then
 	java -jar -Xmx$TOPIC_MODEL_MEMORY tmt-0.4.0.jar event_topic_modeling_test.scala $MODEL $CSVTEST $TOP_TERMS
 
 fi
+exit 0
 # =============================================================== #
 # BAG OF FEATURE GENERATION
 # =============================================================== #
 if [ "$NEW_BOF_FILES" = true ] ; then
 
 	echo "Running feature generation..."
-	./gen_topic_model_bof.py $MODEL $CSVTEST $BOF_DIRECTORY $BOF_LIST_FILE $TEST_IDX_FILE
+	#./gen_topic_model_bof.py $MODEL $CSVTEST $BOF_DIRECTORY $BOF_LIST_FILE $TEST_FILE
 
 fi
 # =============================================================== #
