@@ -56,6 +56,30 @@ target.word-frequencies:
 	test -e FEATURES || mkdir FEATURES
 	word_frequencies.py -td ../data/train/ -dd ../data/dev/ -fd FEATURES
 
+
+target.4gram-nico:
+	cd ../bin; make python
+	test -e FEATURES || mkdir FEATURES
+	test -e FEATURES/4gram-nico || mkdir FEATURES/4gram-nico
+
+	for file in `ls -d ../data/dev/fake/[0-9]*.txt`; do echo perplexity -text $$file; done > eval_dev_fake.txt
+	cat eval_dev_fake.txt | evallm -binary ../bin/LM-train-100MW_4g_vocab_10K.bin > dev_fake_result.txt
+	create_features_4gram.py -c dev -sc fake -fd FEATURES/4gram-nico
+
+	for file in `ls -d ../data/dev/real/[0-9]*.txt`; do echo perplexity -text $$file; done > eval_dev_real.txt
+	cat eval_dev_real.txt | evallm -binary ../bin/LM-train-100MW_4g_vocab_10K.bin > dev_real_result.txt
+	create_features_4gram.py -c dev -sc real -fd FEATURES/4gram-nico
+
+	for file in `ls -d ../data/train/fake/[0-9]*.txt`; do echo perplexity -text $$file; done > eval_train_fake.txt
+	cat eval_train_fake.txt | evallm -binary ../bin/LM-train-100MW_4g_vocab_10K.bin > train_fake_result.txt
+	create_features_4gram.py -c train -sc fake -fd FEATURES/4gram-nico
+
+	for file in `ls -d ../data/train/real/[0-9]*.txt`; do echo perplexity -text $$file; done > eval_train_real.txt
+	cat eval_train_real.txt | evallm -binary ../bin/LM-train-100MW_4g_vocab_10K.bin > train_real_result.txt
+	create_features_4gram.py -c train -sc real -fd FEATURES/4gram-nico
+
+
+
 target.wvec-%: ../data/word_vectors/%.txt.gz
 	cd ../bin ; make python
 	test -e FEATURES || mkdir FEATURES
