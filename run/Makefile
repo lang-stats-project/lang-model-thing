@@ -19,10 +19,10 @@ target.unigram-features:
 	test -e FEATURES || mkdir FEATURES
 	find ../data/train -name \*.txt | xargs -I '{}' cat '{}' | awk '{for(i=1;i<=NF;i++)print $$i}' | sort | uniq -c | awk '{print $$2}' > VOCAB
 	test -e FEATURES/unigram || mkdir FEATURES/unigram
-	find ../data/train/fake -name \*.txt | xargs -I '{}' unigram-feature.py '{}' VOCAB $* 'FEATURES/unigram/train.fake.'
-	find ../data/train/real -name \*.txt | xargs -I '{}' unigram-feature.py '{}' VOCAB $* 'FEATURES/unigram/train.real.'
-	find ../data/dev/fake -name \*.txt | xargs -I '{}' unigram-feature.py '{}' VOCAB $* 'FEATURES/unigram/dev.fake.'
-	find ../data/dev/real -name \*.txt | xargs -I '{}' unigram-feature.py '{}' VOCAB $* 'FEATURES/unigram/dev.real.'
+	find ../data/train/fake -name \*.txt | xargs -I '{}' unigram-feature.py '{}' VOCAB 'FEATURES/unigram/train.fake.'
+	find ../data/train/real -name \*.txt | xargs -I '{}' unigram-feature.py '{}' VOCAB 'FEATURES/unigram/train.real.'
+	find ../data/dev/fake -name \*.txt | xargs -I '{}' unigram-feature.py '{}' VOCAB 'FEATURES/unigram/dev.fake.'
+	find ../data/dev/real -name \*.txt | xargs -I '{}' unigram-feature.py '{}' VOCAB 'FEATURES/unigram/dev.real.'
 	rm VOCAB
 	touch $@
 
@@ -71,6 +71,16 @@ target.wvec-%: ../data/word_vectors/%.txt.gz
 	wvec-feature.py dev.real.wvec-$* $< FEATURES/wvec-$*/dev.real.
 
 	rm -rf train.*.wvec-$* dev.*.wvec-$*
+	touch $@
+
+target.pos-features: ../data/stuff/POS-VOCAB ../src/BerkeleyParser-1.7.jar ../data/stuff/eng_sm6.gr
+	cd ../bin ; make python
+	test -e FEATURES || mkdir FEATURES
+	test -e FEATURES/pos-features || mkdir FEATURES/pos-features
+	find ../data/train/fake -name \*.txt | xargs -I '{}' pos-feature.py '{}' $< 'FEATURES/pos-features/train.fake.' ../src/BerkeleyParser-1.7.jar ../data/stuff/eng_sm6.gr
+	find ../data/train/real -name \*.txt | xargs -I '{}' pos-feature.py '{}' $< 'FEATURES/pos-features/train.real.' ../src/BerkeleyParser-1.7.jar ../data/stuff/eng_sm6.gr
+	find ../data/dev/fake -name \*.txt | xargs -I '{}' pos-feature.py  '{}' $< 'FEATURES/pos-features/dev.fake.' ../src/BerkeleyParser-1.7.jar ../data/stuff/eng_sm6.gr
+	find ../data/dev/real -name \*.txt | xargs -I '{}' pos-feature.py '{}' $< 'FEATURES/pos-features/dev.real.' ../src/BerkeleyParser-1.7.jar ../data/stuff/eng_sm6.gr
 	touch $@
 
 merged.dev.%: run.%
