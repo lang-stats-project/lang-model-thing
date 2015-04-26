@@ -49,6 +49,13 @@ def get_entropy(counts):
         h = p_word * log(p_word, 2)
     return h # should be negative
 
+def get_mean(counts):
+    return sum(counts.values(), 0.0) / len(counts.values())
+
+def get_variance(counts):
+    mean = get_mean(counts)
+    return sum([(counts[word] - mean) ** 2 for word in counts]) / len(counts.values())
+
 # corpus is train/dev; sub_dir is real/fake
 def count_dir(corpus_dir, sub_dir_name):
     full_dir = os.path.join(corpus_dir, sub_dir_name)
