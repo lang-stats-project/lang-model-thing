@@ -47,7 +47,7 @@ target.4gram-lm-features:
 	find ../data/train/real -name \*.txt | xargs -I '{}' run-lm.py '{}' 4gram.arpa 'FEATURES/4gram-lm/train.real.'
 	find ../data/dev/fake -name \*.txt | xargs -I '{}' run-lm.py '{}' 4gram.arpa 'FEATURES/4gram-lm/dev.fake.'
 	find ../data/dev/real -name \*.txt | xargs -I '{}' run-lm.py '{}' 4gram.arpa 'FEATURES/4gram-lm/dev.real.'
-	rm projectLM.binlm
+	rm 4gram.arpa
 	touch $@
 
 
