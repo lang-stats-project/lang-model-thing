@@ -38,10 +38,39 @@ target.3gram-lm-features:
 	rm projectLM.binlm
 	touch $@
 
+target.4gram-lm-features:
+	cd ../bin ; make evallm python
+	zcat ../data/LM-train-100MW.4-gram.good_turing.arpa.gz > 4gram.arpa
+	test -e FEATURES || mkdir FEATURES
+	test -e FEATURES/4gram-lm || mkdir FEATURES/4gram-lm
+	find ../data/train/fake -name \*.txt | xargs -I '{}' run-lm.py '{}' 4gram.arpa 'FEATURES/4gram-lm/train.fake.'
+	find ../data/train/real -name \*.txt | xargs -I '{}' run-lm.py '{}' 4gram.arpa 'FEATURES/4gram-lm/train.real.'
+	find ../data/dev/fake -name \*.txt | xargs -I '{}' run-lm.py '{}' 4gram.arpa 'FEATURES/4gram-lm/dev.fake.'
+	find ../data/dev/real -name \*.txt | xargs -I '{}' run-lm.py '{}' 4gram.arpa 'FEATURES/4gram-lm/dev.real.'
+	rm projectLM.binlm
+	touch $@
+
 
 target.word-frequencies:
 	test -e FEATURES || mkdir FEATURES
 	word_frequencies.py -td ../data/train/ -dd ../data/dev/ -fd FEATURES
+
+target.wvec-%: ../data/word_vectors/%.txt.gz
+	cd ../bin ; make python
+	test -e FEATURES || mkdir FEATURES
+	test -e FEATURES/wvec-$* || mkdir FEATURES/wvec-$*
+	find ../data/train/fake -name \*.txt  > train.fake.wvec-$*
+	find ../data/train/real -name \*.txt  > train.real.wvec-$*
+	find ../data/dev/fake -name \*.txt > dev.fake.wvec-$*
+	find ../data/dev/real -name \*.txt  > dev.real.wvec-$*
+
+	wvec-feature.py train.fake.wvec-$* $< FEATURES/wvec-$*/train.fake.
+	wvec-feature.py train.real.wvec-$* $< FEATURES/wvec-$*/train.real.
+	wvec-feature.py dev.fake.wvec-$* $< FEATURES/wvec-$*/dev.fake.
+	wvec-feature.py dev.real.wvec-$* $< FEATURES/wvec-$*/dev.real.
+
+	rm -rf train.*.wvec-$* dev.*.wvec-$*
+	touch $@
 
 merged.dev.%: run.%
 	merge-features.py $< $* dev
