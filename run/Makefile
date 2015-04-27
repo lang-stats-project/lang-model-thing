@@ -57,6 +57,28 @@ target.word-frequencies:
 	word_frequencies.py -td ../data/train/ -dd ../data/dev/ -fd FEATURES
 
 
+target.3gram-nico:
+	cd ../bin; make python
+	test -e FEATURES || mkdir FEATURES
+	test -e FEATURES/3gram-nico || mkdir FEATURES/3gram-nico
+
+	for file in `ls -d ../data/dev/fake/[0-9]*.txt`; do echo perplexity -text $$file; done > eval_dev_fake.txt
+	cat eval_dev_fake.txt | evallm -binary ../bin/projectLM.binlm > dev_fake_result.txt
+	create_features_4gram.py -c dev -sc fake -fd FEATURES/3gram-nico
+
+	for file in `ls -d ../data/dev/real/[0-9]*.txt`; do echo perplexity -text $$file; done > eval_dev_real.txt
+	cat eval_dev_real.txt | evallm -binary ../bin/projectLM.binlm > dev_real_result.txt
+	create_features_4gram.py -c dev -sc real -fd FEATURES/3gram-nico
+
+	for file in `ls -d ../data/train/fake/[0-9]*.txt`; do echo perplexity -text $$file; done > eval_train_fake.txt
+	cat eval_train_fake.txt | evallm -binary ../bin/projectLM.binlm > train_fake_result.txt
+	create_features_4gram.py -c train -sc fake -fd FEATURES/3gram-nico
+
+	for file in `ls -d ../data/train/real/[0-9]*.txt`; do echo perplexity -text $$file; done > eval_train_real.txt
+	cat eval_train_real.txt | evallm -binary ../bin/projectLM.binlm > train_real_result.txt
+	create_features_4gram.py -c train -sc real -fd FEATURES/3gram-nico
+
+
 target.4gram-nico:
 	cd ../bin; make python
 	test -e FEATURES || mkdir FEATURES
