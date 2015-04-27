@@ -134,9 +134,9 @@ merged.dev.%: run.%
 merged.train.%: run.%
 	merge-features.py $< $* train
 
-SVM_PARAMS=-s 0 -t 1
+SVM_PARAMS=-s 0 -t 2
 gridsearch.%: merged.train.%
-	grid.py ${SVM_PARAMS} -log2c -5,5,1 -log2g -5,5,1 -v 4 -gnuplot null -svmtrain ../bin/svm-train $< > $@
+	grid.py ${SVM_PARAMS} -log2c -11,11,1 -log2g -11,11,1 -v 4 -gnuplot null -svmtrain ../bin/svm-train $< > $@
 
 eval.%: gridsearch.% merged.train.% merged.dev.%
 	svm-train ${SVM_PARAMS} -g `tail -1 $< | awk '{print $$2}'` -c `tail -1 $< | awk '{print $$1}'` -m 10000 merged.train.$* model.$*
