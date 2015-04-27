@@ -14,6 +14,7 @@ end_re = r"\d+ OOVs \((\d+\.\d+)%\)"
 def create_all_features(corpus, sub_corpus, features_dir):
     results_filename = '{0}_{1}_result.txt'.format(corpus, sub_corpus)
     saved_files = 0
+    gram4 = "0"
     with open(results_filename, 'r') as article_results:
         for line in article_results:
             art_id_match = re.match(file_id_re, line)
@@ -50,7 +51,7 @@ def create_all_features(corpus, sub_corpus, features_dir):
                 )
                 with open(feature_file_name, 'w') as feature_file:
                     values = (perplexity, gram4, gram3, gram2, gram1, oov)
-                    feature_file.write('\t'.join(values))
+                    feature_file.write('\t'.join(values) + '\n')
                 saved_files += 1
     print "created %s feature files" % saved_files
 
