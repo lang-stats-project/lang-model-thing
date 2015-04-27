@@ -4,6 +4,9 @@ export SHELL := /bin/bash
 
 CLASSIFIER=svm-
 
+prepare:
+	cd ../bin ; make libsvm python #downloads
+
 target.random-features.%:
 	cd ../bin ; make python
 	test -e FEATURES || mkdir FEATURES
@@ -38,19 +41,6 @@ target.3gram-lm-features:
 	rm projectLM.binlm
 	touch $@
 
-target.4gram-lm-features:
-	cd ../bin ; make evallm python
-	zcat ../data/LM-train-100MW.4-gram.good_turing.arpa.gz > 4gram.arpa
-	test -e FEATURES || mkdir FEATURES
-	test -e FEATURES/4gram-lm || mkdir FEATURES/4gram-lm
-	find ../data/train/fake -name \*.txt | xargs -I '{}' run-lm.py '{}' 4gram.arpa 'FEATURES/4gram-lm/train.fake.'
-	find ../data/train/real -name \*.txt | xargs -I '{}' run-lm.py '{}' 4gram.arpa 'FEATURES/4gram-lm/train.real.'
-	find ../data/dev/fake -name \*.txt | xargs -I '{}' run-lm.py '{}' 4gram.arpa 'FEATURES/4gram-lm/dev.fake.'
-	find ../data/dev/real -name \*.txt | xargs -I '{}' run-lm.py '{}' 4gram.arpa 'FEATURES/4gram-lm/dev.real.'
-	rm 4gram.arpa
-	touch $@
-
-
 target.word-frequencies:
 	cd ../bin; make python
 	test -e FEATURES || mkdir FEATURES
@@ -73,27 +63,18 @@ target.wvec-%: ../data/word_vectors/%.txt.gz
 	rm -rf train.*.wvec-$* dev.*.wvec-$*
 	touch $@
 
-target.pos-features: ../data/stuff/POS-VOCAB ../src/BerkeleyParser-1.7.jar ../data/stuff/eng_sm6.gr
-	cd ../bin ; make python
-	test -e FEATURES || mkdir FEATURES
-	test -e FEATURES/pos-features || mkdir FEATURES/pos-features
-	find ../data/train/fake -name \*.txt | xargs -I '{}' pos-feature.py '{}' $< 'FEATURES/pos-features/train.fake.' ../src/BerkeleyParser-1.7.jar ../data/stuff/eng_sm6.gr
-	find ../data/train/real -name \*.txt | xargs -I '{}' pos-feature.py '{}' $< 'FEATURES/pos-features/train.real.' ../src/BerkeleyParser-1.7.jar ../data/stuff/eng_sm6.gr
-	find ../data/dev/fake -name \*.txt | xargs -I '{}' pos-feature.py  '{}' $< 'FEATURES/pos-features/dev.fake.' ../src/BerkeleyParser-1.7.jar ../data/stuff/eng_sm6.gr
-	find ../data/dev/real -name \*.txt | xargs -I '{}' pos-feature.py '{}' $< 'FEATURES/pos-features/dev.real.' ../src/BerkeleyParser-1.7.jar ../data/stuff/eng_sm6.gr
-	touch $@
-
 merged.dev.%: run.%
 	merge-features.py $< $* dev
 merged.train.%: run.%
 	merge-features.py $< $* train
 
-SVM_PARAMS=-s 0 -t 2
+SVM_PARAMS=-s 0 -t 1
+GRID_INTERVALS=-11,11,0.5
 gridsearch.%: merged.train.%
-	grid.py ${SVM_PARAMS} -log2c -11,11,2 -log2g -11,11,2 -v 4 -gnuplot null -svmtrain ../bin/svm-train $< > $@
+	grid.py ${SVM_PARAMS} -log2c ${GRID_INTERVALS} -log2g ${GRID_INTERVALS} -v 4 -gnuplot null -svmtrain ../bin/svm-train $< > $@
 
 eval.%: gridsearch.% merged.train.% merged.dev.%
-	svm-train ${SVM_PARAMS} -g `tail -1 $< | awk '{print $$2}'` -c `tail -1 $< | awk '{print $$1}'` -m 10000 merged.train.$* model.$*
-	svm-predict merged.dev.$* model.$* merged.dev.$*.output > $@
+	svm-train -b 1 ${SVM_PARAMS} -g `tail -1 $< | awk '{print $$2}'` -c `tail -1 $< | awk '{print $$1}'` -m 10000 merged.train.$* model.$*
+	svm-predict -b 1 merged.dev.$* model.$* merged.dev.$*.output > $@
 	test -e RUN$* || mkdir RUN$*
-	mv merged.*.$* merged.*.$*.* model.$* gridsearch.$* RUN$*
+	mv merged.*.$* merged.*.$*.* model.$* model.$* gridsearch.$* RUN$*
