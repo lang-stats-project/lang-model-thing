@@ -13,6 +13,5 @@ src/libsvm*
 run/eval.*
 run/target.*
 run/RUN*
-run/FEATURES/*
 run/attic
-run/run.*
+run/FEATURES/*
