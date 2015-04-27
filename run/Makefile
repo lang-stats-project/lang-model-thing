@@ -19,10 +19,10 @@ target.unigram-features:
 	test -e FEATURES || mkdir FEATURES
 	find ../data/train -name \*.txt | xargs -I '{}' cat '{}' | awk '{for(i=1;i<=NF;i++)print $$i}' | sort | uniq -c | awk '{print $$2}' > VOCAB
 	test -e FEATURES/unigram || mkdir FEATURES/unigram
-	find ../data/train/fake -name \*.txt | xargs -I '{}' unigram-feature.py '{}' VOCAB $* 'FEATURES/unigram/train.fake.'
-	find ../data/train/real -name \*.txt | xargs -I '{}' unigram-feature.py '{}' VOCAB $* 'FEATURES/unigram/train.real.'
-	find ../data/dev/fake -name \*.txt | xargs -I '{}' unigram-feature.py '{}' VOCAB $* 'FEATURES/unigram/dev.fake.'
-	find ../data/dev/real -name \*.txt | xargs -I '{}' unigram-feature.py '{}' VOCAB $* 'FEATURES/unigram/dev.real.'
+	find ../data/train/fake -name \*.txt | xargs -I '{}' unigram-feature.py '{}' VOCAB 'FEATURES/unigram/train.fake.'
+	find ../data/train/real -name \*.txt | xargs -I '{}' unigram-feature.py '{}' VOCAB 'FEATURES/unigram/train.real.'
+	find ../data/dev/fake -name \*.txt | xargs -I '{}' unigram-feature.py '{}' VOCAB 'FEATURES/unigram/dev.fake.'
+	find ../data/dev/real -name \*.txt | xargs -I '{}' unigram-feature.py '{}' VOCAB 'FEATURES/unigram/dev.real.'
 	rm VOCAB
 	touch $@
 
@@ -56,6 +56,52 @@ target.word-frequencies:
 	test -e FEATURES || mkdir FEATURES
 	word_frequencies.py -td ../data/train/ -dd ../data/dev/ -fd FEATURES
 
+
+target.3gram-nico:
+	cd ../bin; make python
+	test -e FEATURES || mkdir FEATURES
+	test -e FEATURES/3gram-nico || mkdir FEATURES/3gram-nico
+
+	for file in `ls -d ../data/dev/fake/[0-9]*.txt`; do echo perplexity -text $$file; done > eval_dev_fake.txt
+	cat eval_dev_fake.txt | evallm -binary ../bin/projectLM.binlm > dev_fake_result.txt
+	create_features_4gram.py -c dev -sc fake -fd FEATURES/3gram-nico
+
+	for file in `ls -d ../data/dev/real/[0-9]*.txt`; do echo perplexity -text $$file; done > eval_dev_real.txt
+	cat eval_dev_real.txt | evallm -binary ../bin/projectLM.binlm > dev_real_result.txt
+	create_features_4gram.py -c dev -sc real -fd FEATURES/3gram-nico
+
+	for file in `ls -d ../data/train/fake/[0-9]*.txt`; do echo perplexity -text $$file; done > eval_train_fake.txt
+	cat eval_train_fake.txt | evallm -binary ../bin/projectLM.binlm > train_fake_result.txt
+	create_features_4gram.py -c train -sc fake -fd FEATURES/3gram-nico
+
+	for file in `ls -d ../data/train/real/[0-9]*.txt`; do echo perplexity -text $$file; done > eval_train_real.txt
+	cat eval_train_real.txt | evallm -binary ../bin/projectLM.binlm > train_real_result.txt
+	create_features_4gram.py -c train -sc real -fd FEATURES/3gram-nico
+
+
+target.4gram-nico:
+	cd ../bin; make python
+	test -e FEATURES || mkdir FEATURES
+	test -e FEATURES/4gram-nico || mkdir FEATURES/4gram-nico
+
+	for file in `ls -d ../data/dev/fake/[0-9]*.txt`; do echo perplexity -text $$file; done > eval_dev_fake.txt
+	cat eval_dev_fake.txt | evallm -binary ../bin/LM-train-100MW_4g_vocab_10K.bin > dev_fake_result.txt
+	create_features_4gram.py -c dev -sc fake -fd FEATURES/4gram-nico
+
+	for file in `ls -d ../data/dev/real/[0-9]*.txt`; do echo perplexity -text $$file; done > eval_dev_real.txt
+	cat eval_dev_real.txt | evallm -binary ../bin/LM-train-100MW_4g_vocab_10K.bin > dev_real_result.txt
+	create_features_4gram.py -c dev -sc real -fd FEATURES/4gram-nico
+
+	for file in `ls -d ../data/train/fake/[0-9]*.txt`; do echo perplexity -text $$file; done > eval_train_fake.txt
+	cat eval_train_fake.txt | evallm -binary ../bin/LM-train-100MW_4g_vocab_10K.bin > train_fake_result.txt
+	create_features_4gram.py -c train -sc fake -fd FEATURES/4gram-nico
+
+	for file in `ls -d ../data/train/real/[0-9]*.txt`; do echo perplexity -text $$file; done > eval_train_real.txt
+	cat eval_train_real.txt | evallm -binary ../bin/LM-train-100MW_4g_vocab_10K.bin > train_real_result.txt
+	create_features_4gram.py -c train -sc real -fd FEATURES/4gram-nico
+
+
+
 target.wvec-%: ../data/word_vectors/%.txt.gz
 	cd ../bin ; make python
 	test -e FEATURES || mkdir FEATURES
@@ -73,6 +119,16 @@ target.wvec-%: ../data/word_vectors/%.txt.gz
 	rm -rf train.*.wvec-$* dev.*.wvec-$*
 	touch $@
 
+target.pos-features: ../data/stuff/POS-VOCAB ../src/BerkeleyParser-1.7.jar ../data/stuff/eng_sm6.gr
+	cd ../bin ; make python
+	test -e FEATURES || mkdir FEATURES
+	test -e FEATURES/pos-features || mkdir FEATURES/pos-features
+	find ../data/train/fake -name \*.txt | xargs -I '{}' pos-feature.py '{}' $< 'FEATURES/pos-features/train.fake.' ../src/BerkeleyParser-1.7.jar ../data/stuff/eng_sm6.gr
+	find ../data/train/real -name \*.txt | xargs -I '{}' pos-feature.py '{}' $< 'FEATURES/pos-features/train.real.' ../src/BerkeleyParser-1.7.jar ../data/stuff/eng_sm6.gr
+	find ../data/dev/fake -name \*.txt | xargs -I '{}' pos-feature.py  '{}' $< 'FEATURES/pos-features/dev.fake.' ../src/BerkeleyParser-1.7.jar ../data/stuff/eng_sm6.gr
+	find ../data/dev/real -name \*.txt | xargs -I '{}' pos-feature.py '{}' $< 'FEATURES/pos-features/dev.real.' ../src/BerkeleyParser-1.7.jar ../data/stuff/eng_sm6.gr
+	touch $@
+
 merged.dev.%: run.%
 	merge-features.py $< $* dev
 merged.train.%: run.%
@@ -80,7 +136,7 @@ merged.train.%: run.%
 
 SVM_PARAMS=-s 0 -t 2
 gridsearch.%: merged.train.%
-	grid.py ${SVM_PARAMS} -log2c -11,11,2 -log2g -11,11,2 -v 4 -gnuplot null -svmtrain ../bin/svm-train $< > $@
+	grid.py ${SVM_PARAMS} -log2c -11,11,1 -log2g -11,11,1 -v 4 -gnuplot null -svmtrain ../bin/svm-train $< > $@
 
 eval.%: gridsearch.% merged.train.% merged.dev.%
 	svm-train ${SVM_PARAMS} -g `tail -1 $< | awk '{print $$2}'` -c `tail -1 $< | awk '{print $$1}'` -m 10000 merged.train.$* model.$*
