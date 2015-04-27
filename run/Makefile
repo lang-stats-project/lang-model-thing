@@ -114,7 +114,7 @@ merged.dev.%: run.%
 merged.train.%: run.%
 	merge-features.py $< $* train
 
-SVM_PARAMS=-s 0 -t 1
+SVM_PARAMS=-s 0 -t 2
 GRID_INTERVALS=-11,11,0.5
 gridsearch.%: merged.train.%
 	grid.py ${SVM_PARAMS} -log2c ${GRID_INTERVALS} -log2g ${GRID_INTERVALS} -v 4 -gnuplot null -svmtrain ../bin/svm-train $< > $@
