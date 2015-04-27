@@ -1,0 +1,54 @@
+#!/usr/bin/env python
+import sys, argparse, os
+sys.path.insert(0, '../bin')
+
+os.system('test -e ../data/test || mkdir ../data/test')
+doc = []
+out_path = '../data/test'
+doci = 0
+for line in sys.stdin:
+	l = line.strip()
+	if l == "~~~~~":
+		if len(doc) != 0:
+			doci += 1
+			fout = open(out_path+'/'+str(doci)+'.txt','w')
+			for out_line in doc:
+				print >> fout, out_line
+			fout.close()
+		doc = []
+		continue
+	doc.append(l)
+
+if len(doc) != 0:
+	doci += 1
+	fout = open(out_path+'/'+str(doci)+'.txt','w')
+	for out_line in doc:
+		print >> fout, out_line
+	fout.close()
+
+### compile binaries download necessary files
+#os.system('make prepare') ##TODO download stuff, compile stuff
+
+### Generate FEATURES for text file
+
+# ### 3gram featuees
+# os.system('test -e FEATURES/test-3gram-lm || mkdir FEATURES/test-3gram-lm')
+# os.system('find ../data/test -name \*.txt | xargs -I \'{}\' ../bin/run-lm.py \'{}\' projectLM.binlm FEATURES/test-3gram-lm/test. ')
+
+# ### word-vector features
+# os.system('test -e FEATURES/test-wvec-glove100 || mkdir FEATURES/test-wvec-glove100')
+# os.system('find ../data/test -name \*.txt > file_list.test')
+# os.system('../bin/wvec-feature.py file_list.test ../data/word_vectors/glove100.txt.gz FEATURES/test-wvec-glove100/test.')
+# os.system('rm -f file_list.test')
+
+### any other features ???
+
+### merge features
+os.system('echo -e "test-wvec-glove100 test-3gram-lm" > run.test')
+os.system('../bin/merge-test.py run.test')
+os.system('rm -f run.test')
+
+
+### run svm
+os.system('../bin/svm-predict -b 1 merged.test model.final test.output 1> /dev/null')
+os.system('cat test.output | awk \'{l+=1;if(l>=2)print $2, $3, $1}\' ')
